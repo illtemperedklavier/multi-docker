@@ -1,0 +1,25 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t illtemperedklavier/react-test -f ./client/Dockerfile.dev ./client
+
+
+script:
+  - docker run illtemperedklavier/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t illtemperedklavier/multi-client ./client
+  - docker build -t illtemperedklavier/multi-nginx ./nginx
+  - docker build -t illtemperedklavier/multi-server ./server
+  - docker build -t illtemperedklavier/multi-worker ./worker
+
+  #log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+#take images and push them to the docker hub
+  - docker push illtemperedklavier/multi-client
+  - docker push illtemperedklavier/multi-nginx 
+  - docker push illtemperedklavier/multi-server
+  - docker push illtemperedklavier/multi-worker
